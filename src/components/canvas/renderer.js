@@ -42,10 +42,12 @@ export function angleBetweenPoints(p1, p2) {
 // Render pipe segment between two points
 export function drawPipeSegment(ctx, fromPoint, toPoint, pipeSize, scale, color = '#2ECC71') {
   const pipeInfo = PipeSizeInfo[pipeSize]
-  const pipeWidth = pipeInfo.outerDiameter * SCALE_PER_INCH * scale
+  const baseWidth = pipeInfo.outerDiameter * SCALE_PER_INCH
+  // Don't scale lineWidth since canvas context already scales it
+  const pipeWidth = Math.max(2, baseWidth)
 
   ctx.strokeStyle = color
-  ctx.lineWidth = Math.max(2, pipeWidth)
+  ctx.lineWidth = pipeWidth
   ctx.lineCap = 'round'
   ctx.lineJoin = 'round'
 
@@ -58,10 +60,10 @@ export function drawPipeSegment(ctx, fromPoint, toPoint, pipeSize, scale, color 
 // Draw 90° elbow
 export function drawElbow(ctx, position, inAngle, outAngle, pipeSize, scale) {
   const pipeInfo = PipeSizeInfo[pipeSize]
-  const radius = pipeInfo.outerDiameter * SCALE_PER_INCH * scale * 1.5
+  const radius = pipeInfo.outerDiameter * SCALE_PER_INCH * 1.5
 
   ctx.strokeStyle = '#2ECC71'
-  ctx.lineWidth = Math.max(2, pipeInfo.outerDiameter * SCALE_PER_INCH * scale)
+  ctx.lineWidth = Math.max(2, pipeInfo.outerDiameter * SCALE_PER_INCH)
   ctx.lineCap = 'round'
 
   const startAngle = (inAngle * Math.PI) / 180
@@ -75,7 +77,7 @@ export function drawElbow(ctx, position, inAngle, outAngle, pipeSize, scale) {
 // Draw tee fitting
 export function drawTee(ctx, position, mainAngle, branchAngle, pipeSize, scale) {
   const pipeInfo = PipeSizeInfo[pipeSize]
-  const size = pipeInfo.outerDiameter * SCALE_PER_INCH * scale
+  const size = pipeInfo.outerDiameter * SCALE_PER_INCH
 
   ctx.fillStyle = '#2ECC71'
   ctx.beginPath()
@@ -102,9 +104,9 @@ export function drawTee(ctx, position, mainAngle, branchAngle, pipeSize, scale) 
 export function drawReducer(ctx, position, angle, enterSize, exitSize, scale) {
   const enterInfo = PipeSizeInfo[enterSize]
   const exitInfo = PipeSizeInfo[exitSize]
-  const enterWidth = enterInfo.outerDiameter * SCALE_PER_INCH * scale
-  const exitWidth = exitInfo.outerDiameter * SCALE_PER_INCH * scale
-  const length = 15 * scale
+  const enterWidth = enterInfo.outerDiameter * SCALE_PER_INCH
+  const exitWidth = exitInfo.outerDiameter * SCALE_PER_INCH
+  const length = 15
 
   ctx.strokeStyle = '#2ECC71'
   ctx.lineWidth = 2
