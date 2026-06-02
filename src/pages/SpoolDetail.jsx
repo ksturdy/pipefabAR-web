@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { spools } from '../api'
-import IsometricCanvas from '../components/canvas/IsometricCanvas'
 import '../styles/SpoolDetail.css'
 
 export default function SpoolDetail() {
@@ -87,10 +86,12 @@ export default function SpoolDetail() {
 
       <div className="spool-content">
         {tab === 'canvas' && (
-          <IsometricCanvas
-            initialPipePoints={pipePointsData}
-            onPointsChange={handlePipePointsChange}
-          />
+          <div style={{ padding: '24px', background: 'white' }}>
+            <h2>{spool.name}</h2>
+            <p><strong>Status:</strong> {spool.status}</p>
+            <p><strong>System Type:</strong> {spool.system_type || 'None'}</p>
+            <p style={{ marginTop: '16px', color: '#999' }}>Drawing canvas coming soon...</p>
+          </div>
         )}
 
         {tab === 'bom' && (
