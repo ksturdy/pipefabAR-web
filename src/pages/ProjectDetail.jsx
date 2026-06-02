@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, Link } from 'react-router-dom'
 import { projects, workPackages, spools } from '../api'
 import '../styles/ProjectDetail.css'
 
@@ -15,7 +15,7 @@ export default function ProjectDetail() {
   const [showSpoolForm, setShowSpoolForm] = useState(false)
   const [selectedWp, setSelectedWp] = useState(null)
   const [wpFormData, setWpFormData] = useState({ name: '', status: 'pending' })
-  const [spoolFormData, setSpoolFormData] = useState({ size: '', material: '', quantity: 1 })
+  const [spoolFormData, setSpoolFormData] = useState({ name: '', system_type: '', work_package_id: '' })
 
   useEffect(() => {
     loadProject()
@@ -33,6 +33,7 @@ export default function ProjectDetail() {
       const { data } = await projects.get(id)
       setProject(data)
       setWpList(data.work_packages || [])
+      setSpoolList(data.spools || [])
     } catch (err) {
       setError('Failed to load project')
     } finally {
@@ -63,12 +64,11 @@ export default function ProjectDetail() {
 
   const handleCreateSpool = async (e) => {
     e.preventDefault()
-    if (!selectedWp) return
     try {
-      await spools.create(selectedWp.id, spoolFormData.size, spoolFormData.material, spoolFormData.quantity)
-      setSpoolFormData({ size: '', material: '', quantity: 1 })
+      await spools.create(id, spoolFormData.work_package_id || null, spoolFormData.name, spoolFormData.system_type)
+      setSpoolFormData({ name: '', system_type: '', work_package_id: '' })
       setShowSpoolForm(false)
-      loadSpools(selectedWp.id)
+      loadProject()
     } catch (err) {
       setError('Failed to create spool')
     }
@@ -111,7 +111,7 @@ export default function ProjectDetail() {
 
       {error && <div className="error">{error}</div>}
 
-      <div className="detail-grid">
+      <div className="detail-sections">
         <div className="section">
           <div className="section-header">
             <h2>Work Packages</h2>
@@ -166,58 +166,71 @@ export default function ProjectDetail() {
           </div>
         </div>
 
-        {selectedWp && (
-          <div className="section">
-            <div className="section-header">
-              <h2>Spools: {selectedWp.name}</h2>
-              <button onClick={() => setShowSpoolForm(!showSpoolForm)} className="btn-primary">
-                {showSpoolForm ? 'Cancel' : 'Add'}
-              </button>
-            </div>
-
-            {showSpoolForm && (
-              <form onSubmit={handleCreateSpool} className="form">
-                <input
-                  type="text"
-                  placeholder="Size"
-                  value={spoolFormData.size}
-                  onChange={(e) => setSpoolFormData({ ...spoolFormData, size: e.target.value })}
-                />
-                <input
-                  type="text"
-                  placeholder="Material"
-                  value={spoolFormData.material}
-                  onChange={(e) => setSpoolFormData({ ...spoolFormData, material: e.target.value })}
-                />
-                <input
-                  type="number"
-                  placeholder="Quantity"
-                  value={spoolFormData.quantity}
-                  onChange={(e) => setSpoolFormData({ ...spoolFormData, quantity: parseInt(e.target.value) })}
-                  min="1"
-                />
-                <button type="submit" className="btn-primary">Create</button>
-              </form>
-            )}
-
-            <div className="list">
-              {spoolList.map((spool) => (
-                <div key={spool.id} className="list-item">
-                  <div>
-                    <h4>{spool.material} - {spool.size}</h4>
-                    <p>Qty: {spool.quantity}</p>
-                  </div>
-                  <button
-                    className="btn-delete-small"
-                    onClick={() => handleDeleteSpool(spool.id)}
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
-            </div>
+        <div className="section">
+          <div className="section-header">
+            <h2>Spools</h2>
+            <button onClick={() => setShowSpoolForm(!showSpoolForm)} className="btn-primary">
+              {showSpoolForm ? 'Cancel' : 'Add'}
+            </button>
           </div>
-        )}
+
+          {showSpoolForm && (
+            <form onSubmit={handleCreateSpool} className="form">
+              <input
+                type="text"
+                placeholder="Spool name"
+                value={spoolFormData.name}
+                onChange={(e) => setSpoolFormData({ ...spoolFormData, name: e.target.value })}
+                required
+              />
+              <select
+                value={spoolFormData.system_type}
+                onChange={(e) => setSpoolFormData({ ...spoolFormData, system_type: e.target.value })}
+              >
+                <option value="">Select system type</option>
+                <option value="hotWater">Hot Water</option>
+                <option value="coldWater">Cold Water</option>
+                <option value="gas">Gas</option>
+              </select>
+              <select
+                value={spoolFormData.work_package_id}
+                onChange={(e) => setSpoolFormData({ ...spoolFormData, work_package_id: e.target.value })}
+              >
+                <option value="">Unassigned</option>
+                {wpList.map((wp) => (
+                  <option key={wp.id} value={wp.id}>
+                    {wp.name}
+                  </option>
+                ))}
+              </select>
+              <button type="submit" className="btn-primary">Create</button>
+            </form>
+          )}
+
+          <div className="list">
+            {spoolList.map((spool) => (
+              <Link
+                key={spool.id}
+                to={`/spools/${spool.id}`}
+                className="list-item spool-item"
+              >
+                <div>
+                  <h4>{spool.name}</h4>
+                  <span className="status">{spool.status}</span>
+                </div>
+                <button
+                  className="btn-delete-small"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    handleDeleteSpool(spool.id)
+                  }}
+                >
+                  ×
+                </button>
+              </Link>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   )

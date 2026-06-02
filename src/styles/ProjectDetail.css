@@ -17,9 +17,9 @@
   font-size: 14px;
 }
 
-.detail-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+.detail-sections {
+  display: flex;
+  flex-direction: column;
   gap: 24px;
 }
 
@@ -78,6 +78,14 @@
 .list-item.selected {
   background: #e7f3ff;
   border: 1px solid #007AFF;
+}
+
+.list-item.spool-item {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .list-item h4 {
