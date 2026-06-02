@@ -38,7 +38,20 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
 
   const canvas = canvasRef.current
 
+  // Attach keyboard and context menu listeners
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
   // Render canvas
+  useEffect(() => {
+    if (!canvas) return
+
+    canvas.addEventListener('contextmenu', handleContextMenu)
+    return () => canvas.removeEventListener('contextmenu', handleContextMenu)
+  }, [canvas])
+
   useEffect(() => {
     if (!canvas) return
 
@@ -196,6 +209,18 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
   const handleMouseUp = () => {
     setIsDragging(false)
     setDragStart(null)
+  }
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      setSelectedPointId(null)
+    }
+  }
+
+  const handleContextMenu = (e) => {
+    e.preventDefault()
+    setSelectedPointId(null)
   }
 
   const selectedPoint = pipePoints.find((p) => p.id === selectedPointId)
