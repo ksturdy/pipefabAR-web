@@ -53,7 +53,11 @@ export default function SpoolDetail() {
   if (!spool) return <div className="container"><p>Spool not found</p></div>
   if (error) return <div className="container"><p className="error">{error}</p></div>
 
-  const pipePointsData = spool.pipe_points_data ? JSON.parse(spool.pipe_points_data) : []
+  const pipePointsData = spool.pipe_points_data
+    ? typeof spool.pipe_points_data === 'string'
+      ? JSON.parse(spool.pipe_points_data)
+      : spool.pipe_points_data
+    : []
 
   return (
     <div className="spool-detail-page">
