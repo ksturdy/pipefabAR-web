@@ -21,7 +21,8 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
   const canvasRef = useRef(null)
   const [pipePoints, setPipePoints] = useState(() => {
     try {
-      return initialPipePoints.map((p) => PipePoint.fromJSON(p))
+      const points = Array.isArray(initialPipePoints) ? initialPipePoints : []
+      return points.map((p) => PipePoint.fromJSON(p))
     } catch (err) {
       if (onError) onError(err)
       return []
