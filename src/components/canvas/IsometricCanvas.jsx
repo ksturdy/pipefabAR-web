@@ -186,6 +186,40 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
         return
       }
 
+      // Check if clicking on a segment (for Break mode)
+      if (mode === 'break') {
+        for (let i = 0; i < pipePoints.length - 1; i++) {
+          const p1 = pipePoints[i]
+          const p2 = pipePoints[i + 1]
+
+          // Distance from click to line segment
+          const dx = p2.position.x - p1.position.x
+          const dy = p2.position.y - p1.position.y
+          const len = Math.sqrt(dx * dx + dy * dy)
+          if (len === 0) continue
+
+          const t = Math.max(0, Math.min(1, ((canvasX - p1.position.x) * dx + (canvasY - p1.position.y) * dy) / (len * len)))
+          const closestX = p1.position.x + t * dx
+          const closestY = p1.position.y + t * dy
+          const dist = Math.sqrt((canvasX - closestX) ** 2 + (canvasY - closestY) ** 2)
+
+          if (dist < 15 / zoom) {
+            // Insert elbow at this point
+            const newPoint = new PipePoint(
+              uuid(),
+              { x: closestX, y: closestY },
+              FittingType.ELBOW_90,
+              currentPipeSize
+            )
+            const newPoints = [...pipePoints.slice(0, i + 1), newPoint, ...pipePoints.slice(i + 1)]
+            setPipePoints(newPoints)
+            setSelectedPointId(newPoint.id)
+            onPointsChange(newPoints.map((p) => p.toJSON()))
+            return
+          }
+        }
+      }
+
       // Normal mode: add new point
       if (mode === 'normal') {
         const newPoint = new PipePoint(
