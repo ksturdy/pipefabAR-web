@@ -42,6 +42,15 @@ button {
   cursor: not-allowed;
 }
 
+.btn-secondary {
+  background: #ccc;
+  color: #333;
+}
+
+.btn-secondary:hover {
+  opacity: 0.8;
+}
+
 .btn-delete {
   background: var(--danger);
   color: white;

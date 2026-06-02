@@ -21,6 +21,18 @@ export default function ProjectDetail() {
     loadProject()
   }, [id])
 
+  // Close forms on Escape key
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        setShowWpForm(false)
+        setShowSpoolForm(false)
+      }
+    }
+    window.addEventListener('keydown', handleEscape)
+    return () => window.removeEventListener('keydown', handleEscape)
+  }, [])
+
   useEffect(() => {
     if (selectedWp) {
       loadSpools(selectedWp.id)
@@ -210,7 +222,12 @@ export default function ProjectDetail() {
                   </option>
                 ))}
               </select>
-              <button type="submit" className="btn-primary">Create</button>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button type="submit" className="btn-primary">Create</button>
+                <button type="button" className="btn-secondary" onClick={() => setShowSpoolForm(false)}>
+                  Cancel
+                </button>
+              </div>
             </form>
           )}
 
