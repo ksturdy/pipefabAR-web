@@ -305,8 +305,8 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
     const clickX = (e.clientX - rect.left) * scaleX
     const clickY = (e.clientY - rect.top) * scaleY
 
-    // Zoom towards mouse cursor
-    const delta = e.deltaY > 0 ? 0.95 : 1.05
+    // Zoom towards mouse cursor (slower: 2% change per scroll)
+    const delta = e.deltaY > 0 ? 0.98 : 1.02
     const newZoom = Math.max(0.1, Math.min(8, zoom * delta))
     const zoomRatio = newZoom / zoom
 
