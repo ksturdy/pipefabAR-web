@@ -17,11 +17,16 @@ import {
 } from './renderer'
 import '../styles/IsometricCanvas.css'
 
-export default function IsometricCanvas({ initialPipePoints = [], onPointsChange }) {
+export default function IsometricCanvas({ initialPipePoints = [], onPointsChange, onError }) {
   const canvasRef = useRef(null)
-  const [pipePoints, setPipePoints] = useState(
-    initialPipePoints.map((p) => PipePoint.fromJSON(p))
-  )
+  const [pipePoints, setPipePoints] = useState(() => {
+    try {
+      return initialPipePoints.map((p) => PipePoint.fromJSON(p))
+    } catch (err) {
+      if (onError) onError(err)
+      return []
+    }
+  })
   const [selectedPointId, setSelectedPointId] = useState(null)
   const [zoom, setZoom] = useState(1.0)
   const [pan, setPan] = useState({ x: 0, y: 0 })
@@ -36,117 +41,127 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
   useEffect(() => {
     if (!canvas) return
 
-    const ctx = canvas.getContext('2d')
-    const width = canvas.width
-    const height = canvas.height
+    try {
+      const ctx = canvas.getContext('2d')
+      if (!ctx) throw new Error('Could not get canvas 2D context')
 
-    // Clear canvas
-    ctx.fillStyle = '#FFF'
-    ctx.fillRect(0, 0, width, height)
+      const width = canvas.width
+      const height = canvas.height
 
-    // Draw grid
-    ctx.save()
-    ctx.translate(pan.x, pan.y)
-    ctx.scale(zoom, zoom)
-    drawGrid(ctx, width / zoom, height / zoom, 40)
+      // Clear canvas
+      ctx.fillStyle = '#FFF'
+      ctx.fillRect(0, 0, width, height)
 
-    // Draw pipe segments
-    pipePoints.forEach((point, idx) => {
-      if (idx < pipePoints.length - 1 && !pipePoints[idx + 1].branchParentId) {
-        const nextPoint = pipePoints[idx + 1]
-        drawPipeSegment(ctx, point.position, nextPoint.position, point.pipeSize, zoom)
-      }
-    })
+      // Draw grid
+      ctx.save()
+      ctx.translate(pan.x, pan.y)
+      ctx.scale(zoom, zoom)
+      drawGrid(ctx, width / zoom, height / zoom, 40)
 
-    // Draw branch segments
-    pipePoints.forEach((point) => {
-      if (point.branchParentId) {
-        const parent = pipePoints.find((p) => p.id === point.branchParentId)
-        if (parent) {
-          drawPipeSegment(ctx, parent.position, point.position, point.pipeSize, zoom)
+      // Draw pipe segments
+      pipePoints.forEach((point, idx) => {
+        if (idx < pipePoints.length - 1 && !pipePoints[idx + 1].branchParentId) {
+          const nextPoint = pipePoints[idx + 1]
+          drawPipeSegment(ctx, point.position, nextPoint.position, point.pipeSize, zoom)
         }
-      }
-    })
-
-    // Draw points
-    pipePoints.forEach((point, idx) => {
-      let color = '#2ECC71'
-      if (idx === 0) color = '#2ECC71'
-      if (idx === pipePoints.length - 1 && !point.branchParentId) color = '#E74C3C'
-      if (point.fittingType !== FittingType.NONE) color = '#3498DB'
-
-      drawPointMarker(ctx, point.position, color)
-      drawBubble(ctx, idx + 1, {
-        x: point.position.x + 20,
-        y: point.position.y - 10,
       })
 
-      // Draw labels
-      drawLabel(ctx, PipeSizeInfo[point.pipeSize].shortName, {
-        x: point.position.x - 25,
-        y: point.position.y + 15,
+      // Draw branch segments
+      pipePoints.forEach((point) => {
+        if (point.branchParentId) {
+          const parent = pipePoints.find((p) => p.id === point.branchParentId)
+          if (parent) {
+            drawPipeSegment(ctx, parent.position, point.position, point.pipeSize, zoom)
+          }
+        }
       })
-    })
 
-    ctx.restore()
-  }, [canvas, pipePoints, pan, zoom])
+      // Draw points
+      pipePoints.forEach((point, idx) => {
+        let color = '#2ECC71'
+        if (idx === 0) color = '#2ECC71'
+        if (idx === pipePoints.length - 1 && !point.branchParentId) color = '#E74C3C'
+        if (point.fittingType !== FittingType.NONE) color = '#3498DB'
+
+        drawPointMarker(ctx, point.position, color)
+        drawBubble(ctx, idx + 1, {
+          x: point.position.x + 20,
+          y: point.position.y - 10,
+        })
+
+        // Draw labels
+        drawLabel(ctx, PipeSizeInfo[point.pipeSize].shortName, {
+          x: point.position.x - 25,
+          y: point.position.y + 15,
+        })
+      })
+
+      ctx.restore()
+    } catch (err) {
+      if (onError) onError(err)
+    }
+  }, [canvas, pipePoints, pan, zoom, onError])
 
   // Canvas events
   const handleCanvasClick = (e) => {
-    if (!canvas) return
+    try {
+      if (!canvas) return
 
-    const rect = canvas.getBoundingClientRect()
-    const canvasX = (e.clientX - rect.left - pan.x) / zoom
-    const canvasY = (e.clientY - rect.top - pan.y) / zoom
+      const rect = canvas.getBoundingClientRect()
+      const canvasX = (e.clientX - rect.left - pan.x) / zoom
+      const canvasY = (e.clientY - rect.top - pan.y) / zoom
 
-    // Check if clicking on existing point
-    const clickedPoint = pipePoints.find((p) => {
-      const dist = Math.sqrt(
-        (p.position.x - canvasX) ** 2 + (p.position.y - canvasY) ** 2
-      )
-      return dist < 10 / zoom
-    })
+      // Check if clicking on existing point
+      const clickedPoint = pipePoints.find((p) => {
+        const dist = Math.sqrt(
+          (p.position.x - canvasX) ** 2 + (p.position.y - canvasY) ** 2
+        )
+        return dist < 10 / zoom
+      })
 
-    if (clickedPoint) {
-      setSelectedPointId(clickedPoint.id)
-      return
-    }
-
-    // Normal mode: add new point
-    if (mode === 'normal') {
-      const newPoint = new PipePoint(
-        uuid(),
-        { x: canvasX, y: canvasY },
-        FittingType.NONE,
-        PipeSize.ONE
-      )
-
-      // Auto-detect fitting if there's a previous point
-      if (pipePoints.length > 0) {
-        const lastPoint = pipePoints[pipePoints.length - 1]
-        const angle = angleBetweenPoints(lastPoint.position, newPoint.position)
-        const snappedAngle = snapToIsometricAngle(angle)
-        newPoint.fittingOrientation = snappedAngle
-
-        if (pipePoints.length > 1) {
-          const secondLastPoint = pipePoints[pipePoints.length - 2]
-          const incomingAngle = angleBetweenPoints(
-            secondLastPoint.position,
-            lastPoint.position
-          )
-          const incomingSnapped = snapToIsometricAngle(incomingAngle)
-          const angleDiff = Math.abs(incomingSnapped - snappedAngle)
-
-          if (angleDiff > 20) {
-            lastPoint.fittingType = FittingType.ELBOW_90
-          }
-        }
+      if (clickedPoint) {
+        setSelectedPointId(clickedPoint.id)
+        return
       }
 
-      const newPoints = [...pipePoints, newPoint]
-      setPipePoints(newPoints)
-      setSelectedPointId(newPoint.id)
-      onPointsChange(newPoints.map((p) => p.toJSON()))
+      // Normal mode: add new point
+      if (mode === 'normal') {
+        const newPoint = new PipePoint(
+          uuid(),
+          { x: canvasX, y: canvasY },
+          FittingType.NONE,
+          PipeSize.ONE
+        )
+
+        // Auto-detect fitting if there's a previous point
+        if (pipePoints.length > 0) {
+          const lastPoint = pipePoints[pipePoints.length - 1]
+          const angle = angleBetweenPoints(lastPoint.position, newPoint.position)
+          const snappedAngle = snapToIsometricAngle(angle)
+          newPoint.fittingOrientation = snappedAngle
+
+          if (pipePoints.length > 1) {
+            const secondLastPoint = pipePoints[pipePoints.length - 2]
+            const incomingAngle = angleBetweenPoints(
+              secondLastPoint.position,
+              lastPoint.position
+            )
+            const incomingSnapped = snapToIsometricAngle(incomingAngle)
+            const angleDiff = Math.abs(incomingSnapped - snappedAngle)
+
+            if (angleDiff > 20) {
+              lastPoint.fittingType = FittingType.ELBOW_90
+            }
+          }
+        }
+
+        const newPoints = [...pipePoints, newPoint]
+        setPipePoints(newPoints)
+        setSelectedPointId(newPoint.id)
+        onPointsChange(newPoints.map((p) => p.toJSON()))
+      }
+    } catch (err) {
+      if (onError) onError(err)
     }
   }
 

@@ -111,3 +111,11 @@
   margin: 0 0 16px 0;
   color: #333;
 }
+
+.canvas-tab {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  background: white;
+}

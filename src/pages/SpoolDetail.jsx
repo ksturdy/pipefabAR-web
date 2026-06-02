@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { spools } from '../api'
+import IsometricCanvas from '../components/canvas/IsometricCanvas'
 import '../styles/SpoolDetail.css'
 
 export default function SpoolDetail() {
@@ -9,6 +10,7 @@ export default function SpoolDetail() {
   const [spool, setSpool] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [canvasError, setCanvasError] = useState('')
   const [tab, setTab] = useState('canvas') // canvas, bom, preview
   const [isSaving, setIsSaving] = useState(false)
 
@@ -86,11 +88,24 @@ export default function SpoolDetail() {
 
       <div className="spool-content">
         {tab === 'canvas' && (
-          <div style={{ padding: '24px', background: 'white' }}>
-            <h2>{spool.name}</h2>
-            <p><strong>Status:</strong> {spool.status}</p>
-            <p><strong>System Type:</strong> {spool.system_type || 'None'}</p>
-            <p style={{ marginTop: '16px', color: '#999' }}>Drawing canvas coming soon...</p>
+          <div className="canvas-tab">
+            {canvasError ? (
+              <div style={{ padding: '24px', background: '#fff3cd', borderRadius: '4px', margin: '16px' }}>
+                <p style={{ color: '#856404', marginBottom: '12px' }}><strong>Canvas Error:</strong> {canvasError}</p>
+                <button
+                  onClick={() => setCanvasError('')}
+                  style={{ padding: '8px 12px', background: '#856404', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                >
+                  Try Again
+                </button>
+              </div>
+            ) : (
+              <IsometricCanvas
+                initialPipePoints={pipePointsData}
+                onPointsChange={handlePipePointsChange}
+                onError={(err) => setCanvasError(err.message)}
+              />
+            )}
           </div>
         )}
 
