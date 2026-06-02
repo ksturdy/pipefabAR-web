@@ -1,7 +1,7 @@
 import { PipeSizeInfo } from '../../types/fittings'
 
-const ISOMETRIC_ANGLES = [30, 90, 150, 210, 270, 330]
-const ANGLE_SNAP_TOLERANCE = 10
+const ISOMETRIC_ANGLES = [30, 45, 90, 135, 150, 210, 225, 270, 315, 330]
+const ANGLE_SNAP_TOLERANCE = 8
 const SCALE_PER_INCH = 2.0
 
 // Isometric projection: standard 30° angles
@@ -201,21 +201,42 @@ export function drawBubble(ctx, number, position) {
   ctx.fillText(number, position.x, position.y)
 }
 
-// Draw isometric grid background
+// Draw isometric grid background (30°, 90°, 150° angles)
 export function drawGrid(ctx, width, height, spacing = 40) {
   ctx.strokeStyle = '#E0E0E0'
   ctx.lineWidth = 0.5
 
-  // Vertical lines
-  for (let x = 0; x < width; x += spacing) {
+  const angle30 = 30 * Math.PI / 180
+  const angle150 = 150 * Math.PI / 180
+
+  // Lines at 30° (lower-left to upper-right)
+  for (let i = -height; i < width + height; i += spacing) {
+    const x1 = i
+    const y1 = 0
+    const x2 = i + height * Math.cos(angle30)
+    const y2 = height * Math.sin(angle30)
+
     ctx.beginPath()
-    ctx.moveTo(x, 0)
-    ctx.lineTo(x, height)
+    ctx.moveTo(x1, y1)
+    ctx.lineTo(x2, y2)
     ctx.stroke()
   }
 
-  // Horizontal lines
-  for (let y = 0; y < height; y += spacing) {
+  // Lines at 150° (lower-right to upper-left)
+  for (let i = -height; i < width + height; i += spacing) {
+    const x1 = i
+    const y1 = 0
+    const x2 = i + height * Math.cos(angle150)
+    const y2 = height * Math.sin(angle150)
+
+    ctx.beginPath()
+    ctx.moveTo(x1, y1)
+    ctx.lineTo(x2, y2)
+    ctx.stroke()
+  }
+
+  // Vertical lines at 90°
+  for (let y = -height; y < height + height; y += spacing) {
     ctx.beginPath()
     ctx.moveTo(0, y)
     ctx.lineTo(width, y)

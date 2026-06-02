@@ -109,6 +109,7 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
       if (!canvas) return
 
       const rect = canvas.getBoundingClientRect()
+      // Account for pan and zoom, but not isometric projection (we draw in 2D screen space)
       const canvasX = (e.clientX - rect.left - pan.x) / zoom
       const canvasY = (e.clientY - rect.top - pan.y) / zoom
 
