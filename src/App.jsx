@@ -4,6 +4,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import ProjectList from './pages/ProjectList'
 import ProjectDetail from './pages/ProjectDetail'
+import SpoolDetail from './pages/SpoolDetail'
 import Navigation from './components/Navigation'
 
 export default function App() {
@@ -32,6 +33,7 @@ export default function App() {
         <Route path="/register" element={token ? <Navigate to="/" /> : <Register onLogin={handleLogin} />} />
         <Route path="/" element={token ? <ProjectList /> : <Navigate to="/login" />} />
         <Route path="/projects/:id" element={token ? <ProjectDetail /> : <Navigate to="/login" />} />
+        <Route path="/spools/:id" element={token ? <SpoolDetail /> : <Navigate to="/login" />} />
       </Routes>
     </Router>
   )

@@ -36,9 +36,11 @@ export const workPackages = {
 
 export const spools = {
   list: (workPackageId) => api.get(`/spools/workPackage/${workPackageId}`),
-  create: (work_package_id, size, material, quantity) =>
-    api.post('/spools', { work_package_id, size, material, quantity }),
-  update: (id, size, material, quantity) => api.put(`/spools/${id}`, { size, material, quantity }),
+  get: (id) => api.get(`/spools/${id}`),
+  create: (project_id, work_package_id, name, system_type, status, pipe_points_data) =>
+    api.post('/spools', { project_id, work_package_id, name, system_type, status, pipe_points_data }),
+  update: (id, name, system_type, status, pipe_points_data, zoom_scale, pan_offset_x, pan_offset_y, work_package_id) =>
+    api.put(`/spools/${id}`, { name, system_type, status, pipe_points_data, zoom_scale, pan_offset_x, pan_offset_y, work_package_id }),
   delete: (id) => api.delete(`/spools/${id}`),
 }
 
