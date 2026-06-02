@@ -103,11 +103,15 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
       ctx.fillStyle = '#FFF'
       ctx.fillRect(0, 0, width, height)
 
-      // Draw grid
+      // Draw grid (constant size, not zoomed)
+      ctx.save()
+      drawGrid(ctx, width, height, 40)
+      ctx.restore()
+
+      // Draw spool (with zoom and pan)
       ctx.save()
       ctx.translate(pan.x, pan.y)
       ctx.scale(zoom, zoom)
-      drawGrid(ctx, width / zoom, height / zoom, 40)
 
       // Draw pipe segments
       pipePoints.forEach((point, idx) => {
