@@ -34,7 +34,7 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
   const [mode, setMode] = useState('normal') // normal, break, branch, olet
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState(null)
-  const [draggedPointId, setDraggedPointId] = useState(null)
+  const [drawingFromPointId, setDrawingFromPointId] = useState(null)
   const [history, setHistory] = useState([])
 
   const canvas = canvasRef.current
@@ -179,9 +179,9 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
       })
 
       if (clickedPoint) {
+        // Resume drawing from this point
+        setDrawingFromPointId(clickedPoint.id)
         setSelectedPointId(clickedPoint.id)
-        setDraggedPointId(clickedPoint.id)
-        setDragStart({ x: canvasX, y: canvasY })
         return
       }
 
@@ -196,7 +196,10 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
 
         // Snap to isometric angles
         if (pipePoints.length > 0) {
-          const lastPoint = pipePoints[pipePoints.length - 1]
+          // Use drawingFromPointId if set, otherwise last point
+          const lastPoint = drawingFromPointId
+            ? pipePoints.find((p) => p.id === drawingFromPointId)
+            : pipePoints[pipePoints.length - 1]
           const angle = angleBetweenPoints(lastPoint.position, newPoint.position)
           const snappedAngle = snapToIsometricAngle(angle)
 
@@ -261,60 +264,33 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
   }
 
   const handleMouseDown = (e) => {
-    if (!draggedPointId) {
-      setIsDragging(true)
-      setDragStart({ x: e.clientX, y: e.clientY })
-    }
+    setIsDragging(true)
+    setDragStart({ x: e.clientX, y: e.clientY })
   }
 
   const handleMouseMove = (e) => {
-    if (!dragStart) return
+    if (!isDragging || !dragStart) return
 
-    if (draggedPointId) {
-      // Dragging a point
-      if (!canvas) return
-      const rect = canvas.getBoundingClientRect()
-      const scaleX = canvas.width / rect.width
-      const scaleY = canvas.height / rect.height
-      const moveX = (e.clientX - rect.left) * scaleX
-      const moveY = (e.clientY - rect.top) * scaleY
-      const canvasX = (moveX - pan.x) / zoom
-      const canvasY = (moveY - pan.y) / zoom
+    const deltaX = e.clientX - dragStart.x
+    const deltaY = e.clientY - dragStart.y
 
-      // Update point position
-      const updatedPoints = pipePoints.map((p) =>
-        p.id === draggedPointId ? { ...p, position: { x: canvasX, y: canvasY } } : p
-      )
-      setPipePoints(updatedPoints)
-    } else if (isDragging) {
-      // Panning the view
-      const deltaX = e.clientX - dragStart.x
-      const deltaY = e.clientY - dragStart.y
+    setPan({
+      x: pan.x + deltaX,
+      y: pan.y + deltaY,
+    })
 
-      setPan({
-        x: pan.x + deltaX,
-        y: pan.y + deltaY,
-      })
-
-      setDragStart({ x: e.clientX, y: e.clientY })
-    }
+    setDragStart({ x: e.clientX, y: e.clientY })
   }
 
   const handleMouseUp = () => {
-    if (draggedPointId) {
-      // Save point changes after dragging
-      onPointsChange(pipePoints.map((p) => p.toJSON()))
-      setDraggedPointId(null)
-      setDragStart(null)
-    } else {
-      setIsDragging(false)
-      setDragStart(null)
-    }
+    setIsDragging(false)
+    setDragStart(null)
   }
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
       setSelectedPointId(null)
+      setDrawingFromPointId(null)
     }
   }
 
@@ -323,6 +299,7 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
       e.preventDefault()
     }
     setSelectedPointId(null)
+    setDrawingFromPointId(null)
   }
 
   const selectedPoint = pipePoints.find((p) => p.id === selectedPointId)
