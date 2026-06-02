@@ -38,11 +38,14 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
 
   const canvas = canvasRef.current
 
-  // Auto-fit zoom and pan on mount and when initial points change
-  useEffect(() => {
-    if (!canvas || pipePoints.length === 0) return
+  // Fit all points in view
+  const handleZoomExtent = () => {
+    if (!canvas || pipePoints.length === 0) {
+      setZoom(1.0)
+      setPan({ x: 0, y: 0 })
+      return
+    }
 
-    // Calculate bounding box of all points
     let minX = Infinity, maxX = -Infinity
     let minY = Infinity, maxY = -Infinity
 
@@ -53,24 +56,22 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
       maxY = Math.max(maxY, p.position.y)
     })
 
-    const width = maxX - minX
-    const height = maxY - minY
+    const width = maxX - minX || 100
+    const height = maxY - minY || 100
+    const padding = 60
 
-    if (width > 0 && height > 0) {
-      const padding = 60
-      const zoomX = (canvas.width - padding * 2) / width
-      const zoomY = (canvas.height - padding * 2) / height
-      const newZoom = Math.min(zoomX, zoomY, 3)
+    const zoomX = (canvas.width - padding * 2) / width
+    const zoomY = (canvas.height - padding * 2) / height
+    const newZoom = Math.min(zoomX, zoomY, 3)
 
-      const centerX = (minX + maxX) / 2
-      const centerY = (minY + maxY) / 2
-      const newPanX = canvas.width / 2 - centerX * newZoom
-      const newPanY = canvas.height / 2 - centerY * newZoom
+    const centerX = (minX + maxX) / 2
+    const centerY = (minY + maxY) / 2
+    const newPanX = canvas.width / 2 - centerX * newZoom
+    const newPanY = canvas.height / 2 - centerY * newZoom
 
-      setZoom(newZoom)
-      setPan({ x: newPanX, y: newPanY })
-    }
-  }, [canvas, pipePoints.length])
+    setZoom(newZoom)
+    setPan({ x: newPanX, y: newPanY })
+  }
 
   // Attach keyboard and context menu listeners
   useEffect(() => {
@@ -224,7 +225,7 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
 
   const handleWheel = (e) => {
     e.preventDefault()
-    const delta = e.deltaY > 0 ? 0.9 : 1.1
+    const delta = e.deltaY > 0 ? 0.95 : 1.05
     const newZoom = Math.max(0.1, Math.min(8, zoom * delta))
     setZoom(newZoom)
   }
@@ -293,6 +294,7 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
         >
           Clear
         </button>
+        <button onClick={handleZoomExtent}>Fit</button>
       </div>
 
       <canvas
