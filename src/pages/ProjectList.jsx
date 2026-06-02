@@ -8,7 +8,7 @@ export default function ProjectList() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [showForm, setShowForm] = useState(false)
-  const [formData, setFormData] = useState({ name: '', description: '' })
+  const [formData, setFormData] = useState({ name: '', job_number: '', color: '#007AFF' })
 
   useEffect(() => {
     loadProjects()
@@ -29,8 +29,8 @@ export default function ProjectList() {
   const handleCreate = async (e) => {
     e.preventDefault()
     try {
-      await projects.create(formData.name, formData.description)
-      setFormData({ name: '', description: '' })
+      await projects.create(formData.name, formData.job_number, formData.color)
+      setFormData({ name: '', job_number: '', color: '#007AFF' })
       setShowForm(false)
       loadProjects()
     } catch (err) {
@@ -70,10 +70,16 @@ export default function ProjectList() {
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             required
           />
-          <textarea
-            placeholder="Description"
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          <input
+            type="text"
+            placeholder="Job number"
+            value={formData.job_number}
+            onChange={(e) => setFormData({ ...formData, job_number: e.target.value })}
+          />
+          <input
+            type="color"
+            value={formData.color}
+            onChange={(e) => setFormData({ ...formData, color: e.target.value })}
           />
           <button type="submit" className="btn-primary">Create</button>
         </form>

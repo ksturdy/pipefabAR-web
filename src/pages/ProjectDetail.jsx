@@ -14,7 +14,7 @@ export default function ProjectDetail() {
   const [showWpForm, setShowWpForm] = useState(false)
   const [showSpoolForm, setShowSpoolForm] = useState(false)
   const [selectedWp, setSelectedWp] = useState(null)
-  const [wpFormData, setWpFormData] = useState({ name: '', status: 'pending' })
+  const [wpFormData, setWpFormData] = useState({ name: '', package_number: '', status: 'Not Started' })
   const [spoolFormData, setSpoolFormData] = useState({ name: '', system_type: '', work_package_id: '' })
 
   useEffect(() => {
@@ -53,8 +53,8 @@ export default function ProjectDetail() {
   const handleCreateWp = async (e) => {
     e.preventDefault()
     try {
-      await workPackages.create(id, wpFormData.name, wpFormData.status)
-      setWpFormData({ name: '', status: 'pending' })
+      await workPackages.create(id, wpFormData.name, wpFormData.package_number, wpFormData.status)
+      setWpFormData({ name: '', package_number: '', status: 'Not Started' })
       setShowWpForm(false)
       loadProject()
     } catch (err) {
@@ -129,13 +129,20 @@ export default function ProjectDetail() {
                 onChange={(e) => setWpFormData({ ...wpFormData, name: e.target.value })}
                 required
               />
+              <input
+                type="text"
+                placeholder="Package number"
+                value={wpFormData.package_number}
+                onChange={(e) => setWpFormData({ ...wpFormData, package_number: e.target.value })}
+              />
               <select
                 value={wpFormData.status}
                 onChange={(e) => setWpFormData({ ...wpFormData, status: e.target.value })}
               >
-                <option value="pending">Pending</option>
-                <option value="in-progress">In Progress</option>
-                <option value="completed">Completed</option>
+                <option value="Not Started">Not Started</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Review">Review</option>
+                <option value="Completed">Completed</option>
               </select>
               <button type="submit" className="btn-primary">Create</button>
             </form>
