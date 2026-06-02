@@ -38,6 +38,40 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
 
   const canvas = canvasRef.current
 
+  // Auto-fit zoom and pan on mount and when initial points change
+  useEffect(() => {
+    if (!canvas || pipePoints.length === 0) return
+
+    // Calculate bounding box of all points
+    let minX = Infinity, maxX = -Infinity
+    let minY = Infinity, maxY = -Infinity
+
+    pipePoints.forEach((p) => {
+      minX = Math.min(minX, p.position.x)
+      maxX = Math.max(maxX, p.position.x)
+      minY = Math.min(minY, p.position.y)
+      maxY = Math.max(maxY, p.position.y)
+    })
+
+    const width = maxX - minX
+    const height = maxY - minY
+
+    if (width > 0 && height > 0) {
+      const padding = 60
+      const zoomX = (canvas.width - padding * 2) / width
+      const zoomY = (canvas.height - padding * 2) / height
+      const newZoom = Math.min(zoomX, zoomY, 3)
+
+      const centerX = (minX + maxX) / 2
+      const centerY = (minY + maxY) / 2
+      const newPanX = canvas.width / 2 - centerX * newZoom
+      const newPanY = canvas.height / 2 - centerY * newZoom
+
+      setZoom(newZoom)
+      setPan({ x: newPanX, y: newPanY })
+    }
+  }, [canvas, pipePoints.length])
+
   // Attach keyboard and context menu listeners
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown)
@@ -122,9 +156,17 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
       if (!canvas) return
 
       const rect = canvas.getBoundingClientRect()
-      // Account for pan and zoom, but not isometric projection (we draw in 2D screen space)
-      const canvasX = (e.clientX - rect.left - pan.x) / zoom
-      const canvasY = (e.clientY - rect.top - pan.y) / zoom
+      // Account for canvas being resized by CSS (displayed size vs internal size)
+      const scaleX = canvas.width / rect.width
+      const scaleY = canvas.height / rect.height
+
+      // Convert to canvas internal coordinates
+      const clickX = (e.clientX - rect.left) * scaleX
+      const clickY = (e.clientY - rect.top) * scaleY
+
+      // Account for pan and zoom
+      const canvasX = (clickX - pan.x) / zoom
+      const canvasY = (clickY - pan.y) / zoom
 
       // Check if clicking on existing point
       const clickedPoint = pipePoints.find((p) => {
