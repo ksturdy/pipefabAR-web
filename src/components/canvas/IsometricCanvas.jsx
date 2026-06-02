@@ -255,13 +255,14 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
-      e.preventDefault()
       setSelectedPointId(null)
     }
   }
 
   const handleContextMenu = (e) => {
-    e.preventDefault()
+    if (e.cancelable) {
+      e.preventDefault()
+    }
     setSelectedPointId(null)
   }
 

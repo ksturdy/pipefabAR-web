@@ -1,7 +1,7 @@
 import { PipeSizeInfo } from '../../types/fittings'
 
 const ISOMETRIC_ANGLES = [30, 45, 90, 135, 150, 210, 225, 270, 315, 330]
-const ANGLE_SNAP_TOLERANCE = 8
+const ANGLE_SNAP_TOLERANCE = 5
 const SCALE_PER_INCH = 2.0
 
 // Isometric projection: standard 30° angles
