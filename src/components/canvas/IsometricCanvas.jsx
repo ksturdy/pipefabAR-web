@@ -36,6 +36,7 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
   const [dragStart, setDragStart] = useState(null)
   const [drawingFromPointId, setDrawingFromPointId] = useState(null)
   const [history, setHistory] = useState([])
+  const [currentPipeSize, setCurrentPipeSize] = useState(PipeSize.ONE)
 
   const canvas = canvasRef.current
 
@@ -191,7 +192,7 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
           uuid(),
           { x: canvasX, y: canvasY },
           FittingType.NONE,
-          PipeSize.ONE
+          currentPipeSize
         )
 
         // Snap to isometric angles
@@ -316,6 +317,13 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
         <button onClick={() => setMode('branch')} className={mode === 'branch' ? 'active' : ''}>
           Branch
         </button>
+        <select value={currentPipeSize} onChange={(e) => setCurrentPipeSize(e.target.value)} style={{ padding: '6px 8px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '12px' }}>
+          {Object.entries(PipeSizeInfo).map(([key, info]) => (
+            <option key={key} value={key}>
+              {info.shortName}
+            </option>
+          ))}
+        </select>
         <button onClick={() => setZoom(Math.max(0.1, zoom - 0.2))}>−</button>
         <span>{(zoom * 100).toFixed(0)}%</span>
         <button onClick={() => setZoom(Math.min(8, zoom + 0.2))}>+</button>
