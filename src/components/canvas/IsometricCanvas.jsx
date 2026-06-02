@@ -373,7 +373,10 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
         <button onClick={() => setMode('branch')} className={mode === 'branch' ? 'active' : ''}>
           Branch
         </button>
-        <select value={currentPipeSize} onChange={(e) => setCurrentPipeSize(e.target.value)} style={{ padding: '6px 8px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '12px' }}>
+        <select value={currentPipeSize} onChange={(e) => {
+          setCurrentPipeSize(e.target.value)
+          setSelectedPointId(null)
+        }} style={{ padding: '6px 8px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '12px' }}>
           {Object.entries(PipeSizeInfo).map(([key, info]) => (
             <option key={key} value={key}>
               {info.shortName}
