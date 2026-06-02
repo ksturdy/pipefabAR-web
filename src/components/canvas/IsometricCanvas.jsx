@@ -184,6 +184,19 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
       })
 
       if (clickedPoint) {
+        if (mode === 'branch') {
+          // Start a branch from this point
+          setDrawingFromPointId(clickedPoint.id)
+          setSelectedPointId(clickedPoint.id)
+          // Mark this point as a tee
+          if (clickedPoint.fittingType === FittingType.NONE) {
+            clickedPoint.fittingType = FittingType.TEE
+            setPipePoints([...pipePoints])
+            onPointsChange(pipePoints.map((p) => p.toJSON()))
+          }
+          return
+        }
+
         // Resume drawing from this point
         setDrawingFromPointId(clickedPoint.id)
         setSelectedPointId(clickedPoint.id)
@@ -224,14 +237,19 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
         }
       }
 
-      // Normal mode: add new point
-      if (mode === 'normal') {
+      // Normal mode or Branch mode: add new point
+      if (mode === 'normal' || mode === 'branch') {
         const newPoint = new PipePoint(
           uuid(),
           { x: canvasX, y: canvasY },
           FittingType.NONE,
           currentPipeSize
         )
+
+        // In branch mode, mark this point as a branch
+        if (mode === 'branch' && drawingFromPointId) {
+          newPoint.branchParentId = drawingFromPointId
+        }
 
         // Snap to isometric angles
         if (pipePoints.length > 0) {
@@ -388,7 +406,7 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
-        style={{ cursor: isDragging ? 'grabbing' : 'crosshair' }}
+        style={{ cursor: isDragging ? 'grabbing' : selectedPointId ? 'pointer' : 'default' }}
       />
 
       {selectedPoint && (
