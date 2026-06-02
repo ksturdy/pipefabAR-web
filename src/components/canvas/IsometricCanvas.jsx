@@ -191,11 +191,20 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
           PipeSize.ONE
         )
 
-        // Auto-detect fitting if there's a previous point
+        // Snap to isometric angles
         if (pipePoints.length > 0) {
           const lastPoint = pipePoints[pipePoints.length - 1]
           const angle = angleBetweenPoints(lastPoint.position, newPoint.position)
           const snappedAngle = snapToIsometricAngle(angle)
+
+          // Calculate distance and apply snapped angle
+          const distance = Math.sqrt(
+            (newPoint.position.x - lastPoint.position.x) ** 2 +
+            (newPoint.position.y - lastPoint.position.y) ** 2
+          )
+          const radians = (snappedAngle * Math.PI) / 180
+          newPoint.position.x = lastPoint.position.x + Math.cos(radians) * distance
+          newPoint.position.y = lastPoint.position.y + Math.sin(radians) * distance
           newPoint.fittingOrientation = snappedAngle
 
           if (pipePoints.length > 1) {
