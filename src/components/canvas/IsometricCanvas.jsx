@@ -105,7 +105,7 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
 
       // Draw grid (constant size, not zoomed)
       ctx.save()
-      drawGrid(ctx, width, height, 46)
+      drawGrid(ctx, width, height, 34)
       ctx.restore()
 
       // Draw spool (with zoom and pan)
