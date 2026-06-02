@@ -174,7 +174,7 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
         const dist = Math.sqrt(
           (p.position.x - canvasX) ** 2 + (p.position.y - canvasY) ** 2
         )
-        return dist < 10 / zoom
+        return dist < 20 / zoom
       })
 
       if (clickedPoint) {
