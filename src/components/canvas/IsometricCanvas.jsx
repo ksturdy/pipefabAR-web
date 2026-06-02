@@ -234,9 +234,27 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
 
   const handleWheel = (e) => {
     e.preventDefault()
+    if (!canvas) return
+
+    const rect = canvas.getBoundingClientRect()
+    const scaleX = canvas.width / rect.width
+    const scaleY = canvas.height / rect.height
+    const clickX = (e.clientX - rect.left) * scaleX
+    const clickY = (e.clientY - rect.top) * scaleY
+
+    // Zoom towards mouse cursor
     const delta = e.deltaY > 0 ? 0.95 : 1.05
     const newZoom = Math.max(0.1, Math.min(8, zoom * delta))
+    const zoomRatio = newZoom / zoom
+
+    // Adjust pan so zoom happens around cursor
+    const newPan = {
+      x: clickX - (clickX - pan.x) * zoomRatio,
+      y: clickY - (clickY - pan.y) * zoomRatio,
+    }
+
     setZoom(newZoom)
+    setPan(newPan)
   }
 
   const handleMouseDown = (e) => {
