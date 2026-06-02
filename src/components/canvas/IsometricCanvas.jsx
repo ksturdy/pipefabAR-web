@@ -34,6 +34,7 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
   const [mode, setMode] = useState('normal') // normal, break, branch, olet
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState(null)
+  const [draggedPointId, setDraggedPointId] = useState(null)
   const [history, setHistory] = useState([])
 
   const canvas = canvasRef.current
@@ -179,6 +180,8 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
 
       if (clickedPoint) {
         setSelectedPointId(clickedPoint.id)
+        setDraggedPointId(clickedPoint.id)
+        setDragStart({ x: canvasX, y: canvasY })
         return
       }
 
@@ -258,27 +261,55 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
   }
 
   const handleMouseDown = (e) => {
-    setIsDragging(true)
-    setDragStart({ x: e.clientX, y: e.clientY })
+    if (!draggedPointId) {
+      setIsDragging(true)
+      setDragStart({ x: e.clientX, y: e.clientY })
+    }
   }
 
   const handleMouseMove = (e) => {
-    if (!isDragging || !dragStart) return
+    if (!dragStart) return
 
-    const deltaX = e.clientX - dragStart.x
-    const deltaY = e.clientY - dragStart.y
+    if (draggedPointId) {
+      // Dragging a point
+      if (!canvas) return
+      const rect = canvas.getBoundingClientRect()
+      const scaleX = canvas.width / rect.width
+      const scaleY = canvas.height / rect.height
+      const moveX = (e.clientX - rect.left) * scaleX
+      const moveY = (e.clientY - rect.top) * scaleY
+      const canvasX = (moveX - pan.x) / zoom
+      const canvasY = (moveY - pan.y) / zoom
 
-    setPan({
-      x: pan.x + deltaX,
-      y: pan.y + deltaY,
-    })
+      // Update point position
+      const updatedPoints = pipePoints.map((p) =>
+        p.id === draggedPointId ? { ...p, position: { x: canvasX, y: canvasY } } : p
+      )
+      setPipePoints(updatedPoints)
+    } else if (isDragging) {
+      // Panning the view
+      const deltaX = e.clientX - dragStart.x
+      const deltaY = e.clientY - dragStart.y
 
-    setDragStart({ x: e.clientX, y: e.clientY })
+      setPan({
+        x: pan.x + deltaX,
+        y: pan.y + deltaY,
+      })
+
+      setDragStart({ x: e.clientX, y: e.clientY })
+    }
   }
 
   const handleMouseUp = () => {
-    setIsDragging(false)
-    setDragStart(null)
+    if (draggedPointId) {
+      // Save point changes after dragging
+      onPointsChange(pipePoints.map((p) => p.toJSON()))
+      setDraggedPointId(null)
+      setDragStart(null)
+    } else {
+      setIsDragging(false)
+      setDragStart(null)
+    }
   }
 
   const handleKeyDown = (e) => {
