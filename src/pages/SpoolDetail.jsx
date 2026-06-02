@@ -36,11 +36,12 @@ export default function SpoolDetail() {
     // Auto-save
     setIsSaving(true)
     try {
+      const serializedPoints = Array.isArray(pipePointsData) ? pipePointsData.map(p => p.toJSON ? p.toJSON() : p) : []
       const updatedSpool = {
         ...spool,
-        pipe_points_data: JSON.stringify(pipePointsData),
+        pipe_points_data: serializedPoints,
       }
-      await spools.update(id, spool.name, spool.system_type, spool.status, pipePointsData, spool.zoom_scale, spool.pan_offset_x, spool.pan_offset_y, spool.work_package_id)
+      await spools.update(id, spool.name, spool.system_type, spool.status, serializedPoints, spool.zoom_scale, spool.pan_offset_x, spool.pan_offset_y, spool.work_package_id)
       setSpool(updatedSpool)
     } catch (err) {
       setError('Failed to save spool')
