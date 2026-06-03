@@ -41,13 +41,7 @@ export function angleBetweenPoints(p1, p2) {
 
 // Render pipe segment between two points
 export function drawPipeSegment(ctx, fromPoint, toPoint, pipeSize, scale, color = '#2ECC71') {
-  const pipeInfo = PipeSizeInfo[pipeSize]
-  const baseWidth = pipeInfo.outerDiameter * SCALE_PER_INCH
-  // Don't scale lineWidth since canvas context already scales it
-  const pipeWidth = Math.max(2, baseWidth)
-
   ctx.strokeStyle = color
-  ctx.lineWidth = pipeWidth
   ctx.lineCap = 'round'
   ctx.lineJoin = 'round'
 
