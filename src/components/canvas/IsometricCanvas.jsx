@@ -144,13 +144,13 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
       // Draw spool (with zoom and pan)
       ctx.save()
       ctx.translate(pan.x, pan.y)
-      ctx.scale(1 / zoom, 1 / zoom)
+      ctx.scale(zoom, zoom)
 
       // Draw pipe segments
       pipePoints.forEach((point, idx) => {
         if (idx < pipePoints.length - 1 && !pipePoints[idx + 1].branchParentId) {
           const nextPoint = pipePoints[idx + 1]
-          ctx.lineWidth = Math.max(0.5, PipeSizeInfo[point.pipeSize].outerDiameter * 2.0 * zoom)
+          ctx.lineWidth = Math.max(0.5, PipeSizeInfo[point.pipeSize].outerDiameter * 2.0 / zoom)
           drawPipeSegment(ctx, point.position, nextPoint.position, point.pipeSize, zoom)
         }
       })
@@ -160,7 +160,7 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
         if (point.branchParentId) {
           const parent = pipePoints.find((p) => p.id === point.branchParentId)
           if (parent) {
-            ctx.lineWidth = Math.max(0.5, PipeSizeInfo[point.pipeSize].outerDiameter * 2.0 * zoom)
+            ctx.lineWidth = Math.max(0.5, PipeSizeInfo[point.pipeSize].outerDiameter * 2.0 / zoom)
             drawPipeSegment(ctx, parent.position, point.position, point.pipeSize, zoom)
           }
         }
@@ -296,6 +296,8 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
           const angle = angleBetweenPoints(lastPoint.position, newPoint.position)
           const snappedAngle = snapToIsometricAngle(angle)
 
+          console.log('BEFORE SNAP:', { click: newPoint.position, last: lastPoint.position, rawAngle: angle.toFixed(1), snappedAngle })
+
           // Calculate distance and apply snapped angle
           const distance = Math.sqrt(
             (newPoint.position.x - lastPoint.position.x) ** 2 +
@@ -305,6 +307,8 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
           newPoint.position.x = lastPoint.position.x + Math.cos(radians) * distance
           newPoint.position.y = lastPoint.position.y + Math.sin(radians) * distance
           newPoint.fittingOrientation = snappedAngle
+
+          console.log('AFTER SNAP:', { newPos: newPoint.position, distance: distance.toFixed(1), radians: radians.toFixed(3) })
 
           if (pipePoints.length > 1) {
             const secondLastPoint = pipePoints[pipePoints.length - 2]
