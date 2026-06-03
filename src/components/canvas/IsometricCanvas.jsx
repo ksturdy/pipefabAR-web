@@ -275,6 +275,7 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
 
       // Normal mode or Branch mode: add new point
       if (mode === 'normal' || mode === 'branch') {
+        console.log(`Click: screen=(${e.clientX}, ${e.clientY}) canvas=(${clickX.toFixed(0)}, ${clickY.toFixed(0)}) data=(${canvasX.toFixed(0)}, ${canvasY.toFixed(0)}) zoom=${zoom} pan=(${pan.x.toFixed(0)}, ${pan.y.toFixed(0)})`)
         const newPoint = new PipePoint(
           uuid(),
           { x: canvasX, y: canvasY },
