@@ -403,6 +403,15 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
       <div className="canvas-toolbar">
         <button onClick={handleUndo} disabled={historyIndex <= 0}>↶ Undo</button>
         <button onClick={handleRedo} disabled={historyIndex >= history.length - 1}>↷ Redo</button>
+        <button onClick={() => {
+          if (pipePoints.length > 0) {
+            const newPoints = pipePoints.slice(0, -1)
+            setPipePoints(newPoints)
+            setSelectedPointId(null)
+            saveToHistory(newPoints)
+            onPointsChange(newPoints.map((p) => p.toJSON()))
+          }
+        }}>Delete Last</button>
         <button onClick={() => setMode('normal')} className={mode === 'normal' ? 'active' : ''}>
           Normal
         </button>
