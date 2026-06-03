@@ -36,9 +36,42 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
   const [dragStart, setDragStart] = useState(null)
   const [drawingFromPointId, setDrawingFromPointId] = useState(null)
   const [history, setHistory] = useState([])
+  const [historyIndex, setHistoryIndex] = useState(-1)
   const [currentPipeSize, setCurrentPipeSize] = useState(PipeSize.ONE)
 
   const canvas = canvasRef.current
+
+  // Save to history when points change
+  const saveToHistory = (points) => {
+    const newHistory = history.slice(0, historyIndex + 1)
+    newHistory.push(points.map((p) => p.toJSON()))
+    setHistory(newHistory)
+    setHistoryIndex(newHistory.length - 1)
+  }
+
+  // Undo
+  const handleUndo = () => {
+    if (historyIndex > 0) {
+      const newIndex = historyIndex - 1
+      const previousPoints = history[newIndex].map((p) => PipePoint.fromJSON(p))
+      setPipePoints(previousPoints)
+      setHistoryIndex(newIndex)
+      setSelectedPointId(null)
+      onPointsChange(history[newIndex])
+    }
+  }
+
+  // Redo
+  const handleRedo = () => {
+    if (historyIndex < history.length - 1) {
+      const newIndex = historyIndex + 1
+      const nextPoints = history[newIndex].map((p) => PipePoint.fromJSON(p))
+      setPipePoints(nextPoints)
+      setHistoryIndex(newIndex)
+      setSelectedPointId(null)
+      onPointsChange(history[newIndex])
+    }
+  }
 
   // Fit all points in view
   const handleZoomExtent = () => {
@@ -231,6 +264,7 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
             const newPoints = [...pipePoints.slice(0, i + 1), newPoint, ...pipePoints.slice(i + 1)]
             setPipePoints(newPoints)
             setSelectedPointId(newPoint.id)
+            saveToHistory(newPoints)
             onPointsChange(newPoints.map((p) => p.toJSON()))
             return
           }
@@ -288,6 +322,7 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
         const newPoints = [...pipePoints, newPoint]
         setPipePoints(newPoints)
         setSelectedPointId(newPoint.id)
+        saveToHistory(newPoints)
         onPointsChange(newPoints.map((p) => p.toJSON()))
       }
     } catch (err) {
@@ -364,6 +399,8 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
   return (
     <div className="isometric-canvas-container">
       <div className="canvas-toolbar">
+        <button onClick={handleUndo} disabled={historyIndex <= 0}>↶ Undo</button>
+        <button onClick={handleRedo} disabled={historyIndex >= history.length - 1}>↷ Redo</button>
         <button onClick={() => setMode('normal')} className={mode === 'normal' ? 'active' : ''}>
           Normal
         </button>
