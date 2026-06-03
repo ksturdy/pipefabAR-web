@@ -150,7 +150,7 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
       pipePoints.forEach((point, idx) => {
         if (idx < pipePoints.length - 1 && !pipePoints[idx + 1].branchParentId) {
           const nextPoint = pipePoints[idx + 1]
-          ctx.lineWidth = Math.max(0.5, PipeSizeInfo[point.pipeSize].outerDiameter * SCALE_PER_INCH / zoom)
+          ctx.lineWidth = Math.max(0.5, PipeSizeInfo[point.pipeSize].outerDiameter * 2.0 / zoom)
           drawPipeSegment(ctx, point.position, nextPoint.position, point.pipeSize, zoom)
         }
       })
@@ -160,7 +160,7 @@ export default function IsometricCanvas({ initialPipePoints = [], onPointsChange
         if (point.branchParentId) {
           const parent = pipePoints.find((p) => p.id === point.branchParentId)
           if (parent) {
-            ctx.lineWidth = Math.max(0.5, PipeSizeInfo[point.pipeSize].outerDiameter * SCALE_PER_INCH / zoom)
+            ctx.lineWidth = Math.max(0.5, PipeSizeInfo[point.pipeSize].outerDiameter * 2.0 / zoom)
             drawPipeSegment(ctx, parent.position, point.position, point.pipeSize, zoom)
           }
         }
